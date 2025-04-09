@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporary Email for OTP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .email-box {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message-list {
+            margin-top: 20px;
+        }
+        .message-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message-item:hover {
+            background-color: #f0f0f0;
+        }
+        .message-content {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 2px;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Temporary Email for OTP</h1>
+    
+    <div class="container">
+        <h2>Your Temporary Email</h2>
+        <div id="email-display" class="email-box">No email generated yet</div>
+        <button id="generate-btn">Generate New Email</button>
+        <button id="refresh-btn" disabled>Check for Messages</button>
+        <p id="status"></p>
+    </div>
+    
+    <div class="container">
+        <h2>Messages</h2>
+        <div id="message-list" class="message-list">No messages yet</div>
+        <div id="message-content" class="message-content" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentLogin = '';
+        let currentDomain = '';
+        
+        document.getElementById('generate-btn').addEventListener('click', generateEmail);
+        document.getElementById('refresh-btn').addEventListener('click', checkMessages);
+        
+        // Generate a random email using 1secmail API
+        async function generateEmail() {
+            document.getElementById('status').textContent = 'Generating email...';
+            try {
+                const response = await fetch('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
+                const data = await response.json();
+                const email = data[0];
+                
+                // Parse email to get login and domain
+                const [login, domain] = email.split('@');
+                currentLogin = login;
+                currentDomain = domain;
+                
+                document.getElementById('email-display').textContent = email;
+                document.getElementById('refresh-btn').disabled = false;
+                document.getElementById('status').textContent = 'Email generated! You can now use this email for your OTP.';
+                
+                // Clear previous messages
+                document.getElementById('message-list').innerHTML = 'No messages yet';
+                document.getElementById('message-content').style.display = 'none';
+                
+                // Start auto-checking for messages
+                startAutoRefresh();
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error generating email: ' + error.message;
+            }
+        }
+        
+        // Check for new messages
+        async function checkMessages() {
+            if (!currentLogin || !currentDomain) return;
+            
+            document.getElementById('status').textContent = 'Checking for messages...';
+            try {
+                const response = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                const messages = await response.json();
+                
+                const messageList = document.getElementById('message-list');
+                
+                if (messages.length === 0) {
+                    messageList.innerHTML = 'No messages yet';
+                    document.getElementById('status').textContent = 'No messages found. Will check again automatically.';
+                } else {
+                    messageList.innerHTML = '';
+                    messages.forEach(message => {
+                        const messageItem = document.createElement('div');
+                        messageItem.className = 'message-item';
+                        messageItem.innerHTML = `
+                            <strong>From:</strong> ${message.from}<br>
+                            <strong>Subject:</strong> ${message.subject}<br>
+                            <strong>Date:</strong> ${message.date}
+                        `;
+                        messageItem.addEventListener('click', () => readMessage(message.id));
+                        messageList.appendChild(messageItem);
+                    });
+                    document.getElementById('status').textContent = `${messages.length} message(s) found. Click on a message to view it.`;
+                }
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error checking messages: ' + error.message;
+            }
+        }
+        
+        // Read a specific message
+        async function readMessage(id) {
+            document.getElementById('status').textContent = 'Loading message...';
+            try {
+                const response = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
+                const message = await response.json();
+                
+                const messageContent = document.getElementById('message-content');
+                messageContent.style.display = 'block';
+                
+                // Try to highlight OTP in the message text
+                let highlightedText = message.textBody;
+                
+                // Look for common OTP patterns (4-8 digit numbers)
+                const otpPattern = /\b\d{4,8}\b/g;
+                if (otpPattern.test(highlightedText)) {
+                    highlightedText = highlightedText.replace(otpPattern, match => `<span class="highlight">${match}</span>`);
+                }
+                
+                messageContent.innerHTML = `
+                    <h3>${message.subject}</h3>
+                    <p><strong>From:</strong> ${message.from}</p>
+                    <p><strong>Date:</strong> ${message.date}</p>
+                    <hr>
+                    <div>${highlightedText.replace(/\n/g, '<br>')}</div>
+                `;
+                
+                document.getElementById('status').textContent = 'Message loaded!';
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error reading message: ' + error.message;
+            }
+        }
+        
+        // Auto-refresh to check for new messages
+        let refreshInterval;
+        function startAutoRefresh() {
+            // Clear any existing interval
+            if (refreshInterval) clearInterval(refreshInterval);
+            
+            // Check every 10 seconds
+            refreshInterval = setInterval(checkMessages, 10000);
+        }
+        
+        // Generate an email automatically when the page loads
+        window.onload = generateEmail;
+    </script>
+</body>
+</html>
