@@ -29,5 +29,6 @@ The included workflow `.github/workflows/deploy.yml` shows an example of automat
 
 - **Generate New Email** – Creates a new temporary address and displays it.
 - **Check for Messages** – Retrieves emails for the generated address and lists them. Disabled until an address is created.
+- **Auto refresh** – When enabled, automatically checks for messages at the specified interval.
 
 Opening a message displays the body with any 4–8 digit numbers highlighted so OTP codes stand out.

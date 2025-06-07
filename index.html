@@ -50,6 +50,10 @@
         </select>
         <button id="generate-btn">Generate New Email</button>
         <button id="refresh-btn" disabled>Check for Messages</button>
+        <label style="margin-left:10px;">
+            <input type="checkbox" id="auto-refresh"> Auto refresh every
+            <input type="number" id="interval-input" value="10" min="5" style="width:60px;">s
+        </label>
         <p id="status"></p>
     </div>
 
@@ -60,7 +64,7 @@
     </div>
 
     <script>
-        let user, domain;
+        let user, domain, refreshIntervalId;
 
         document.getElementById('generate-btn').onclick = () => {
             domain = document.getElementById('domain-select').value;
@@ -68,12 +72,17 @@
             const email = user + '@' + domain;
             document.getElementById('email-display').textContent = email;
             document.getElementById('refresh-btn').disabled = false;
+            if (refreshIntervalId) {
+                clearInterval(refreshIntervalId);
+                refreshIntervalId = null;
+                document.getElementById('auto-refresh').checked = false;
+            }
             document.getElementById('status').textContent = 'Email generated! Use this email for OTP.';
             document.getElementById('message-list').innerHTML = 'No messages yet';
             document.getElementById('message-content').style.display = 'none';
         };
 
-        document.getElementById('refresh-btn').onclick = () => {
+        function refreshMessages() {
             document.getElementById('status').textContent = 'Checking messages...';
             fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${user}&domain=${domain}`)
                 .then(res => res.json())
@@ -97,6 +106,30 @@
                     document.getElementById('status').textContent = `${messages.length} message(s) loaded.`;
                 })
                 .catch(err => document.getElementById('status').textContent = 'Error: ' + err);
+        }
+
+        document.getElementById('refresh-btn').onclick = refreshMessages;
+
+        document.getElementById('auto-refresh').onchange = e => {
+            if (e.target.checked) {
+                const interval = parseInt(document.getElementById('interval-input').value, 10) || 10;
+                refreshMessages();
+                refreshIntervalId = setInterval(refreshMessages, interval * 1000);
+                document.getElementById('status').textContent = `Auto refresh every ${interval}s.`;
+            } else {
+                clearInterval(refreshIntervalId);
+                refreshIntervalId = null;
+                document.getElementById('status').textContent = 'Auto refresh stopped.';
+            }
+        };
+
+        document.getElementById('interval-input').onchange = () => {
+            if (document.getElementById('auto-refresh').checked) {
+                clearInterval(refreshIntervalId);
+                const interval = parseInt(document.getElementById('interval-input').value, 10) || 10;
+                refreshIntervalId = setInterval(refreshMessages, interval * 1000);
+                document.getElementById('status').textContent = `Auto refresh every ${interval}s.`;
+            }
         };
 
         function readMessage(id) {
