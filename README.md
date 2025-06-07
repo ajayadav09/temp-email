@@ -4,12 +4,12 @@ A simple static page to generate and read disposable emails using the [1secmail]
 
 ## How it works
 
-`index.html` creates a unique mailbox when you click **Generate New Email**. The address is displayed on the page and the **Check for Messages** button becomes active. Clicking it fetches messages for that inbox from the API. Selecting a message loads its contents and highlights sequences of 4–8 digits (useful for OTP codes).
+`index.html` creates a unique mailbox when you click **Generate New Email**. The address is displayed on the page and the **Check for Messages** button becomes active. Use the domain dropdown to choose `1secmail.com`, `1secmail.org` or `1secmail.net` before generating. Clicking **Check for Messages** fetches messages for that inbox from the API. Selecting a message loads its contents and highlights sequences of 4–8 digits (useful for OTP codes).
 
 ## Prerequisites
 
 - A modern web browser
-- An active internet connection (API requests are made to `1secmail.com`)
+- An active internet connection (API requests use the selected 1secmail domain)
 - The page loads [DOMPurify](https://github.com/cure53/DOMPurify) from a CDN for sanitizing email content
 
 ## Run locally

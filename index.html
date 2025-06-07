@@ -28,6 +28,11 @@
             font-size: 16px;
         }
         button:hover { background-color: #45a049; }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin-left: 5px;
+        }
         .highlight { background-color: #ffeb3b; padding: 2px; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.4/dist/purify.min.js"></script>
@@ -37,6 +42,12 @@
     <div class="container">
         <h2>Your Temporary Email</h2>
         <div id="email-display" class="email-box">No email generated yet</div>
+        <label for="domain-select">Domain:</label>
+        <select id="domain-select">
+            <option value="1secmail.com">1secmail.com</option>
+            <option value="1secmail.org">1secmail.org</option>
+            <option value="1secmail.net">1secmail.net</option>
+        </select>
         <button id="generate-btn">Generate New Email</button>
         <button id="refresh-btn" disabled>Check for Messages</button>
         <p id="status"></p>
@@ -49,9 +60,10 @@
     </div>
 
     <script>
-        let user, domain = '1secmail.com';
+        let user, domain;
 
         document.getElementById('generate-btn').onclick = () => {
+            domain = document.getElementById('domain-select').value;
             user = 'user' + Date.now();
             const email = user + '@' + domain;
             document.getElementById('email-display').textContent = email;
