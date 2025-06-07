@@ -1,2 +1,2 @@
 # temp-email
-Genearting a temporary email
+Generating a temporary email
