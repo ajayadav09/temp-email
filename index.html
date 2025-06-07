@@ -64,7 +64,9 @@
 
         document.getElementById('generate-btn').onclick = () => {
             domain = document.getElementById('domain-select').value;
-            user = 'user' + Date.now();
+            const bytes = new Uint8Array(12);
+            crypto.getRandomValues(bytes);
+            user = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
             const email = user + '@' + domain;
             document.getElementById('email-display').textContent = email;
             document.getElementById('refresh-btn').disabled = false;
