@@ -10,6 +10,7 @@ A simple static page to generate and read disposable emails using the [1secmail]
 
 - A modern web browser
 - An active internet connection (API requests are made to `1secmail.com`)
+- The page loads [DOMPurify](https://github.com/cure53/DOMPurify) from a CDN for sanitizing email content
 
 ## Run locally
 

@@ -30,6 +30,7 @@
         button:hover { background-color: #45a049; }
         .highlight { background-color: #ffeb3b; padding: 2px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.4/dist/purify.min.js"></script>
 </head>
 <body>
     <h1>Temporary Email for OTP</h1>
@@ -95,6 +96,7 @@
                         content = content.replace(/\n/g, '<br>');
 
                     content = content.replace(/\b\d{4,8}\b/g, '<span class="highlight">$&</span>');
+                    content = DOMPurify.sanitize(content);
 
                     document.getElementById('message-content').innerHTML = `
                         <h3>${msg.subject || '(No subject)'}</h3>
