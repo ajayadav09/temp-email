@@ -32,3 +32,7 @@ The included workflow `.github/workflows/deploy.yml` shows an example of automat
 - **Auto refresh** – When enabled, automatically checks for messages at the specified interval.
 
 Opening a message displays the body with any 4–8 digit numbers highlighted so OTP codes stand out.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
